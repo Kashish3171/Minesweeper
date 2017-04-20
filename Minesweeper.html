@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html ng-app='myApp'>
+<head>
+	<title>Web App</title>
+
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+	<style type="text/css">
+	.minefield{
+		line-height: 0;
+		border-spacing:0;
+	}	
+	.minefield td{
+		padding:0;
+	}
+
+	</style>
+	<script>
+   function createMinefield()
+     {  var minefield= {};
+         minefield.rows=[];
+
+        for(var i=0;i<11;i++)
+       {
+              var row={};
+              row.spots=[];
+              for(var j=0;j<11;j++)
+               {
+                  var spot={};
+                  spot.isCovered=true;
+                 spot.content='empty';
+                  row.spots.push(spot);
+
+               }
+               minefield.rows.push(row);
+
+       }
+           placeManyRandomMines(minefield);
+           calculateAllNumbers(minefield);
+         return minefield;
+     }
+     function getSpot(minefield,row,column){
+     	return minefield.rows[row].spots[column];
+     }
+        function placeRandomMine(minefield){
+
+     var row=Math.round(Math.random()*8);
+     var column=Math.round(Math.random()*8);
+     var spot=getSpot(minefield,row,column);
+     spot.content='mine';
+        }
+
+       function placeManyRandomMines(minefield){
+       	for(var i=0;i<15;i++)
+       	{
+       		placeRandomMine(minefield);
+       	}
+       }
+
+       function calculateNumber(minefield,row,column){
+           var thisSpot=getSpot(minefield,row,column);
+           if(thisSpot.content=='mine')
+             {
+             	return;
+             }
+             var mineCount=0;
+              	if(row>0)
+              	{
+                    if(column>0)
+                    {
+                    	var spot=getSpot(minefield,row-1,column-1);
+                    	 if(spot.content=='mine')
+                    	 {
+                    	 	mineCount++;
+                    	 }
+                    }
+
+                        var spot=getSpot(minefield,row-1,column);
+                          if(spot.content=='mine')
+                    	   {
+                    	 	mineCount++;
+                    	    }
+
+                    if(column<8)	    
+                   {
+                    	var spot=getSpot(minefield,row-1,column+1);
+                    	 if(spot.content=='mine')
+                    	 {
+                    	 	mineCount++;
+                    	 }
+                    }
+
+              	}
+
+                if(row<8)
+              	{
+                    if(column>0)
+                    {
+                    	var spot=getSpot(minefield,row+1,column-1);
+                    	 if(spot.content=='mine')
+                    	 {
+                    	 	mineCount++;
+                    	 }
+                    }
+
+                        var spot=getSpot(minefield,row+1,column);
+                          if(spot.content=='mine')
+                    	   {
+                    	 	mineCount++;
+                    	    }
+
+                    if(column<8)	    
+                   {
+                    	var spot=getSpot(minefield,row+1,column+1);
+                    	 if(spot.content=='mine')
+                    	 {
+                    	 	mineCount++;
+                    	 }
+                    }
+
+              	}
+
+              	 if(column>0)
+                    {
+                    	var spot=getSpot(minefield,row,column-1);
+                    	 if(spot.content=='mine')
+                    	 {
+                    	 	mineCount++;
+                    	 }
+                    }
+
+                  if(column<8)
+                    {
+                    	var spot=getSpot(minefield,row,column+1);
+                    	 if(spot.content=='mine')
+                    	 {
+                    	 	mineCount++;
+                    	 }
+                    }
+                   if(mineCount>0){
+                   	thisSpot.content=mineCount;
+                   }
+            }
+
+            function calculateAllNumbers(minefield){
+            	for(var x=0;x<9;x++){
+            		for(var y=0;y<9;y++){
+            			calculateNumber(minefield,x,y);
+            		}
+            	}
+            }
+            function hasWon(minefield)
+            {
+
+            for(var x=0;x<9;x++)
+              {
+            	for(var y=0;y<9;y++)
+            	       {
+                            var spot=getSpot(minefield,x,y);
+                            if(spot.isCovered&&spot.content!='mine')
+                            {
+                            	return false;
+                            }
+            	        }
+              }
+            return true;
+            }
+
+             function hasLost(minefield)
+            {
+
+            for(var x=0;x<9;x++)
+              {
+            	for(var y=0;y<9;y++)
+            	       {
+                            var spot=getSpot(minefield,x,y);
+                            if(!spot.isCovered&&spot.content=='mine')
+                            {
+                            	return true;
+                            }
+            	        }
+              }
+            return false;
+            }
+      var app=angular.module('myApp',[]);
+	app.controller('myController',function($scope){
+     $scope.minefield=createMinefield(); 
+     $scope.restart=false;       
+     $scope.uncoverSpot=function(spot){
+     	spot.isCovered=false;
+     	if(hasWon($scope.minefield))
+     	{
+     		$scope.isWinMessageVisible=true;
+     	}
+        else if(hasLost($scope.minefield))
+        {
+            $scope.isLostMessageVisible=true;
+
+        }
+     }
+ 
+	});
+	</script>
+</head>
+<body ng-controller='myController' style='padding-left:32em;'>
+<div class='modal-content' style='padding-left:4em;padding-right:2em;width:40%;'>
+<div class='modal-header'>
+<h1>Minesweeper</h1></div>
+<div class='modal-body'>
+<table border='1' class='minefield'>
+<tr ng-repeat='row in minefield.rows'>
+<td ng-repeat='spot in row.spots' ng-click='uncoverSpot(spot)'>
+<img ng-if='spot.isCovered' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/covered.png' />
+<img ng-if='!spot.isCovered && spot.content=="empty"' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/empty.png' />
+
+<img ng-if='!spot.isCovered && spot.content=="mine"' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/mine.png' />
+
+<img ng-if='!spot.isCovered && spot.content==1' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/number-1.png' />
+
+<img ng-if='!spot.isCovered && spot.content==2' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/number-2.png' />
+
+<img ng-if='!spot.isCovered && spot.content==3' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/number-3.png' />
+
+<img ng-if='!spot.isCovered && spot.content==4' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/number-4.png' />
+
+<img ng-if='!spot.isCovered && spot.content==5' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/number-5.png' />
+
+<img ng-if='!spot.isCovered && spot.content==6' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/number-6.png' />
+
+<img ng-if='!spot.isCovered && spot.content==7' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/number-7.png' />
+
+<img ng-if='!spot.isCovered && spot.content==8' src='http://luis-perez.s3-us-west-2.amazonaws.com/angularjs-minesweeper-game/number-8.png' />
+</td>
+</tr>
+</table></div>
+<div class='modal-footer'>
+
+<h3 ng-show='isWinMessageVisible'>You Won</h3>
+
+<h3 ng-show='isLostMessageVisible'>You Lose</h3>
+
+</div></div>
+</body>
+</html>
